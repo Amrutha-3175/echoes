@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Welcome to Echoes 💙</title>
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex; justify-content: center; align-items: center;
+    font-family: "Segoe UI", sans-serif;
+    background: linear-gradient(135deg, #A8C8E8, #F6D7E0, #FFF4C2);
+    background-size: 300% 300%;
+    animation: gradientFlow 8s ease infinite;
+}
+
+/* Animated gradient */
+@keyframes gradientFlow {
+    0% {background-position: 0% 50%;}
+    50% {background-position: 100% 50%;}
+    100% {background-position: 0% 50%;}
+}
+
+/* Main Box */
+.box {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(10px);
+    padding: 35px;
+    width: 480px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.18);
+    animation: fadeIn 1s ease;
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+    from {opacity: 0; transform: translateY(20px);}
+    to {opacity: 1; transform: translateY(0);}
+}
+
+/* Heading */
+h2 {
+    font-size: 32px;
+    font-weight: 600;
+    color: #1F3E5A;
+    margin-bottom: 10px;
+}
+
+/* Emotional subtitle */
+p {
+    font-size: 15px;
+    color: #3C3C3C;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+/* Button */
+button {
+    background: linear-gradient(135deg, #1F3E5A, #345A88);
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s ease;
+    width: 70%;
+}
+button:hover {
+    transform: translateY(-3px);
+    background: linear-gradient(135deg, #29496F, #5078A4);
+}
+
+/* Sparkles */
+.sparkles {
+    font-size: 22px;
+    margin-bottom: 10px;
+}
+</style>
+</head>
+<body>
+
+<div class="box">
+    <div class="sparkles">✨🌸💛🌿</div>
+    <h2>Welcome home, {{ name }} 💙</h2>
+    
+    <p>
+        This is your space of whispers and warmth,<br>
+        where memories stay gentle, and feelings are allowed to exist.
+    </p>
+
+    <button onclick="window.location.href='/dashboard'">
+        Enter Your Echoes ✨
+    </button>
+</div>
+
+</body>
+</html>

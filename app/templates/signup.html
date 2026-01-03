@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Join Echoes</title>
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex; justify-content: center; align-items: center;
+    background: linear-gradient(135deg, #A8C8E8, #EDE3D2);
+    font-family: "Segoe UI", sans-serif;
+}
+
+/* Container */
+.signup-container {
+    background: rgb(204, 154, 182);
+    width: 380px;
+    padding: 30px;
+    border-radius: 18px;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.15);
+    text-align: center;
+}
+
+/* Heading */
+h2 {
+    color: #2F3A57;
+    margin-bottom: 10px;
+    font-size: 26px;
+    font-weight: 600;
+}
+
+/* Soft emotional subtitle */
+p.subtitle {
+    font-size: 14px;
+    color: #9ee0db;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+/* Input fields */
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 10px;
+    border: 1px solid #aaa;
+    font-size: 15px;
+}
+
+/* Button */
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    background: #1F3E5A;
+    color: white;
+    font-size: 16px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+button:hover {
+    background: #2C537A;
+    transform: translateY(-2px);
+}
+
+/* Login link */
+a {
+    color: #1F3E5A;
+    font-weight: bold;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+</style>
+</head>
+<body>
+<div class="signup-container">
+
+    <!-- Echoes Header / Logo Vibe -->
+    <h1 style="font-family:serif; font-size:32px; margin-bottom:5px; color:#1F3E5A;">
+        Echoes 📖
+    </h1>
+    <p style="font-size:14px; color:#555; margin-top:-5px;">a soft space for your memories</p>
+
+    <h2>✨ Create Your Echoes Account</h2>
+    <p class="subtitle">
+        Welcome to your quiet space, where memories are kept gently. 💙
+    </p>
+
+    <!-- Error if email already exists -->
+    {% if error %}
+    <div style="background:#ffd6d6; padding:10px; border-radius:10px; color:#800000; margin-bottom:10px;">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST">
+        <input type="text" name="name" placeholder="Your Name" required>
+        <input type="email" name="email" placeholder="Email Address" required>
+
+        <input type="password" name="password"
+               placeholder="Password (min 6 characters, 1 number)"
+               pattern="^(?=.*[0-9]).{6,}$"
+               title="Must be 6+ characters and include a number"
+               required>
+
+        <button type="submit">Create Account</button>
+    </form>
+
+    <p style="margin-top:15px;">Already with us? <a href="/login">Login Here</a></p>
+</div>
+
+
+</body>
+</html>

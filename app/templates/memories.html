@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Echoes Dashboard</title>
+
+<!-- 🌈 Animations & Sparkles -->
+<style>
+.sparkle {
+    position: fixed;
+    top: -10px;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 50%;
+    animation: fall 6s linear infinite;
+    pointer-events: none;
+    filter: drop-shadow(0 0 6px rgba(255,255,255,0.8));
+}
+@keyframes fall {
+    0% { transform: translateY(0) translateX(0); opacity: 1; }
+    100% { transform: translateY(110vh) translateX(-50px); opacity: 0; }
+}
+body { animation: fadePage 0.6s ease; }
+@keyframes fadePage { from {opacity: 0;} to {opacity: 1;} }
+.card { animation: fadeInUp 0.7s ease both; }
+@keyframes fadeInUp { from {opacity: 0; transform: translateY(15px);} to {opacity: 1; transform: translateY(0);} }
+</style>
+
+<!-- 🌟 Main Styles -->
+<style>
+body {
+    background: linear-gradient(to bottom right, #A8C8E8, #EDE3D2);
+    font-family: Arial, sans-serif;
+    padding: 30px;
+    text-align: center;
+}
+h2 {
+    color: #2F3A57;
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+.memory-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin: 10px 0;
+}
+.grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 25px;
+}
+.card {
+    background: white;
+    border-radius: 14px;
+    width: 300px;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    text-align: left;
+    position: relative;
+    height: 470px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.toggle {
+    background: none; border: none;
+    color: #37577A; cursor: pointer;
+    font-size: 14px;
+}
+.title { font-size: 20px; color: #1C2C44; }
+.date { color: #7A7A7A; font-size: 14px; }
+
+/* 🏷️ TAG STYLE */
+.tag {
+    display: inline-block;
+    padding: 5px 12px;
+    background: #F6D89C;
+    color: #4B3E2F;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    margin: 3px;
+    text-decoration: none;
+    transition: 0.2s ease;
+}
+.tag:hover {
+    background: #E9C57D;
+    transform: scale(1.05);
+}
+
+/* Buttons */
+.btn {
+    background: #1F3E5A;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    margin: 10px;
+    display: inline-block;
+}
+</style>
+
+<!-- 🗑 Delete Modal -->
+<style>
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4);
+    justify-content: center; align-items: center;
+}
+.modal-content {
+    background: white;
+    width: 320px;
+    padding: 20px;
+    border-radius: 14px;
+    text-align: center;
+}
+.confirm {
+    background:#B60000; color:white;
+    padding:8px 14px; border-radius:8px; border:none;
+}
+.cancel {
+    background:#ccc; padding:8px 14px; border-radius:8px; border:none;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Welcome back to the soft quiet space for your memories 💙</h2>
+
+<!-- 🔖 TAG FILTER BAR -->
+<div style="margin: 20px auto; padding:10px; max-width:700px;">
+    {% if all_tags %}
+        {% for t in all_tags %}
+            <a href="/dashboard?tag={{t.tag_name}}" class="tag">#{{t.tag_name}}</a>
+        {% endfor %}
+    {% else %}
+        <p style="color:#555;">No tags yet — start adding some! 🧷</p>
+    {% endif %}
+</div>
+
+<!-- 🔍 SEARCH + FILTER -->
+<form method="GET" action="/dashboard" style="margin-bottom:20px;">
+    <input type="text" name="search" placeholder="🔍 Search memories..." style="padding:8px; border-radius:8px; width:220px;">
+
+    <select name="emotion" style="padding:8px; border-radius:8px;">
+        <option value="all">All Emotions</option>
+        {% for emo in emotion_list %}
+        <option value="{{ emo.emotion_name }}">{{ emo.emotion_name }}</option>
+        {% endfor %}
+    </select>
+
+    <button type="submit" class="btn">Filter</button>
+</form>
+
+<a class="btn" href="/add">➕ Add Memory</a>
+<a class="btn" href="/logout">Logout</a>
+
+<!-- 🗂 MEMORY GRID -->
+<div class="grid">
+{% for memory in memories %}
+<div class="card">
+
+    <div class="title">{{ memory.title }}</div>
+    <div class="date">{{ memory.memory_date }}</div>
+
+    {% if memory.image_path %}
+    <img src="{{ url_for('uploaded_file', filename=memory.image_path) }}" class="memory-image">
+    {% endif %}
+
+    {% if memory.audio_path %}
+    <audio controls style="width:100%; border-radius:8px;">
+        <source src="{{ url_for('uploaded_file', filename=memory.audio_path) }}" type="audio/mpeg">
+    </audio>
+    {% endif %}
+
+    <div class="content">
+        <span class="short">{{ memory.content[:120] }}...</span>
+        <span class="full" style="display:none;">{{ memory.content }}</span>
+        <button class="toggle" onclick="toggleContent(this)">Show More ▼</button>
+    </div>
+
+    <div class="emotion">{{ memory.emoji }} {{ memory.emotion_name }}</div>
+
+    <!-- 🏷️ TAGS UNDER MEMORY -->
+    <div>
+    {% if memory.tag_list %}
+        {% for t in memory.tag_list.split(',') %}
+            <a class="tag" href="/dashboard?tag={{ t.strip() }}">#{{ t.strip() }}</a>
+        {% endfor %}
+    {% endif %}
+    </div>
+
+    <br>
+   <div style="display:flex; gap:10px;">
+    <a class="btn edit-btn" href="/edit/{{memory.memory_id}}">✏️ Edit</a>
+    <button class="btn delete-btn" data-id="{{memory.memory_id}}" style="background:#B60000;">🗑 Delete</button>
+    </div>
+
+</div>
+{% endfor %}
+</div>
+
+<!-- 🗑 Delete Modal -->
+<div id="deleteModal" class="modal">
+  <div class="modal-content">
+    <p>🗑 Are you sure you want to delete this memory?</p>
+    <button id="confirmDelete" class="confirm">Yes, Delete</button>
+    <button id="cancelDelete" class="cancel">Cancel</button>
+  </div>
+</div>
+
+<!-- ✨ JS Interactions -->
+<script>
+function toggleContent(button) {
+    const card = button.parentElement;
+    const shortText = card.querySelector(".short");
+    const fullText = card.querySelector(".full");
+    if (fullText.style.display === "none") {
+        fullText.style.display = "inline";
+        shortText.style.display = "none";
+        button.textContent = "Show Less ▲";
+    } else {
+        fullText.style.display = "none";
+        shortText.style.display = "inline";
+        button.textContent = "Show More ▼";
+    }
+}
+
+let deleteId = null;
+document.querySelectorAll(".delete-btn").forEach(btn => {
+    btn.onclick = () => {
+        deleteId = btn.getAttribute("data-id");
+        document.getElementById("deleteModal").style.display = "flex";
+    };
+});
+document.getElementById("confirmDelete").onclick = () => window.location.href = "/delete/" + deleteId;
+document.getElementById("cancelDelete").onclick = () => document.getElementById("deleteModal").style.display = "none";
+
+function createSparkle() {
+    const sparkle = document.createElement("div");
+    sparkle.classList.add("sparkle");
+    sparkle.style.left = Math.random()*100 + "vw";
+    sparkle.style.animationDuration = (4 + Math.random()*4) + "s";
+    document.body.appendChild(sparkle);
+    setTimeout(() => sparkle.remove(), 6000);
+}
+setInterval(createSparkle, 1200);
+</script>
+
+</body>
+</html>

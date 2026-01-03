@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Add Memory</title>
+
+<style>
+    body {
+        background: linear-gradient(to bottom right, #F5E9D8, #E6DAF1);
+        font-family: "Segoe UI", sans-serif;
+        text-align: center;
+        padding: 40px;
+    }
+    form {
+        background: white;
+        padding: 25px;
+        width: 450px;
+        margin: auto;
+        border-radius: 15px;
+        border: 3px solid #E6DAF1;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    input, textarea, select {
+        width: 100%;
+        padding: 10px;
+        margin: 8px 0;
+        border-radius: 8px;
+        border: 1.5px solid #CBB7E5;
+    }
+    button {
+        background: #D8B46A;
+        color: #1F3E5A;
+        font-weight: bold;
+        border: none;
+        padding: 12px;
+        width: 100%;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+
+.tag-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0;
+}
+.tag-label {
+    background: #F6D7A7;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #4A432C;
+    transition: .2s;
+}
+.tag-label:hover {
+    background: #E2C48E;
+}
+
+
+</style>
+</head>
+
+<body>
+<h2>Add a New Memory 💙</h2>
+
+<form method="POST" enctype="multipart/form-data">
+
+    <input type="text" name="title" placeholder="Memory Title" required>
+    
+    <textarea name="content" placeholder="Write about your moment..." required></textarea>
+
+    <label>Date</label>
+    <input type="date" name="date" required>
+
+    
+    <label>Emotion</label>
+<input type="text" id="emotionSearch" placeholder="Search or add new emotion..." onkeyup="filterEmotion()" style="padding:10px; width:100%; border-radius:8px; border:1.5px solid #CBB7E5;">
+<select name="emotion" id="emotionDropdown" required style="margin-top:8px;">
+    <option value="1">😊 Happy</option>
+    <option value="2">😢 Sad</option>
+    <option value="3">💫 Bittersweet</option>
+    <option value="4">😶‍🌫 Confused</option>
+</select>
+<button type="button" onclick="addNewEmotion()" style="margin-top:6px; background:#D8B46A; padding:8px; border-radius:8px; color:#1F3E5A; border:none; cursor:pointer;">
+    ➕ Add New Emotion
+</button>
+
+
+    <label>Image (optional)</label>
+    <input type="file" name="image" accept="image/*">
+
+    <label>Voice (optional)</label>
+    <input type="file" name="audio" accept="audio/*">
+     <label>Tags (choose or type new):</label><br>
+<div class="tag-options">
+    {% for t in tags %}
+        <label class="tag-label">
+            <input type="checkbox" name="selected_tags" value="{{ t.tag_id }}">
+            {{ t.tag_name }}
+        </label>
+    {% endfor %}
+</div>
+
+<br>
+<input type="text" name="new_tags" placeholder="Add new tags, separated by commas (optional)"
+style="
+width: 90%; padding: 10px; border-radius:10px;
+border: none; background: rgba(255,255,255,0.6);
+">
+<!-- Existing Tags (Checkboxes) -->
+<label><strong>Select Tags:</strong></label><br>
+{% for tag in tags %}
+  <label style="margin-right:10px;">
+    <input type="checkbox" name="selected_tags" value="{{ tag.tag_id }}">
+    {{ tag.tag_name }}
+  </label>
+{% endfor %}
+<br><br>
+
+<!-- Add New Tags -->
+<label><strong>Add New Tags (comma separated):</strong></label><br>
+<input type="text" name="new_tags" placeholder="e.g. rainyday, bestfriend, college">
+<br><br>
+
+    <button type="submit">Save Memory</button>
+</form>
+<script>
+// Filter dropdown while typing
+function filterEmotion() {
+    let input = document.getElementById("emotionSearch").value.toLowerCase();
+    let dropdown = document.getElementById("emotionDropdown");
+    let options = dropdown.options;
+
+    for (let i = 0; i < options.length; i++) {
+        let text = options[i].text.toLowerCase();
+        options[i].style.display = text.includes(input) ? "" : "none";
+    }
+}
+
+// Add new emotion to dropdown
+function addNewEmotion() {
+    let newEmotion = document.getElementById("emotionSearch").value.trim();
+    if(newEmotion === "") {
+        alert("Enter an emotion name to add.");
+        return;
+    }
+
+    let dropdown = document.getElementById("emotionDropdown");
+    let option = document.createElement("option");
+    option.text = "✨ " + newEmotion;
+    option.value = newEmotion; // temporarily store as text
+    dropdown.add(option);
+    
+    dropdown.value = newEmotion;
+    alert("New emotion added! Submit form to save it.");
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login • Echoes</title>
+<style>
+
+/* Background Gradient */
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    flex-direction: column;
+    font-family: "Segoe UI", sans-serif;
+    background: var(--bg);
+    transition: background 0.5s, color 0.4s;
+}
+
+/* 🌗 Light & Dark Theme Variables */
+:root {
+    --bg: linear-gradient(135deg, #EDE3D2, #D7C8EB, #AED3EF);
+    --text: #1F2C39;
+    --box: rgba(255,255,255,0.75);
+    --button: #1F3E5A;
+}
+body.dark {
+    --bg: linear-gradient(135deg, #1E1F26, #2A2C34, #0F1A26);
+    --text: #E6E6E6;
+    --box: rgba(30, 32, 39, 0.7);
+    --button: #5A8BBF;
+}
+
+/* Login Card */
+.container {
+    background: var(--box);
+    backdrop-filter: blur(12px);
+    padding: 35px;
+    width: 420px;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.18);
+}
+
+/* Title */
+h2 {
+    font-size: 28px;
+    color: var(--text);
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+}
+
+/* Subtitle */
+p.subtitle {
+    font-size: 14px;
+    color: var(--text);
+    opacity: 0.8;
+    margin-bottom: 20px;
+}
+
+/* Inputs */
+input {
+    width: 82%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    margin: 8px 0;
+    background: rgba(255,255,255,0.6);
+    outline: none;
+}
+
+/* Login Button */
+button.submit-btn {
+    background: var(--button);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 10px;
+    border: none;
+    font-size: 16px;
+    margin-top: 15px;
+    cursor: pointer;
+    width: 85%;
+    transition: 0.3s;
+}
+button.submit-btn:hover { transform: translateY(-3px); }
+
+/* Dark Mode Toggle */
+.toggle {
+    background: none; border: none;
+    font-size: 14px; cursor: pointer;
+    margin-top: 15px;
+    color: var(--text);
+}
+
+/* Sign Up Link */
+.signup-text {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #6A4E77;
+}
+.signup-text a {
+    color: #4b3862;
+    font-weight: bold;
+    text-decoration: none;
+}
+.signup-text a:hover {
+    text-decoration: underline;
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Welcome Back 🌙</h2>
+    <p class="subtitle">Your memories are waiting quietly…</p>
+
+    <form method="POST">
+        <input type="email" name="email" placeholder="Email" required><br>
+        <input type="password" name="password" placeholder="Password" required><br>
+        <button class="submit-btn" type="submit">Unlock My Echoes ✨</button>
+    </form>
+
+    <button class="toggle" onclick="toggleTheme()">🌗 Toggle Light / Dark</button>
+</div>
+
+<p class="signup-text">
+    New here? ✨ <a href="/signup">Create an Account</a>
+</p>
+
+<script>
+function toggleTheme(){
+    document.body.classList.toggle("dark");
+}
+</script>
+
+</body>
+</html>

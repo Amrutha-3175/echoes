@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Echoes - Home</title>
+
+<style>
+    body {
+        background: linear-gradient(to bottom right, #F5E9D8, #E6DAF1); /* beige -> lavender flow */
+        font-family: "Segoe UI", sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    .home-box {
+        background: #FFFFFF;
+        padding: 45px;
+        width: 460px;
+        text-align: center;
+        border-radius: 20px;
+        border: 3px solid #E6DAF1; /* muted lavender */
+        box-shadow: 0 8px 25px rgba(31,62,90,0.15);
+    }
+
+    h1 {
+        color: #1F3E5A; /* dashboard blue for connection */
+        font-size: 28px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .subtitle {
+        color: #6C5A7C; /* lavender grey text */
+        font-size: 14px;
+        margin-bottom: 25px;
+        opacity: 0.9;
+        font-style: italic;
+    }
+
+    .btn {
+        background: #D8B46A; /* dusty gold highlight */
+        color: #1F3E5A;
+        padding: 13px 20px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: 0.25s;
+        display: inline-block;
+        font-size: 15px;
+    }
+
+    .btn:hover {
+        background: #c29c56; /* warmer gold on hover */
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+</style>
+</head>
+
+<body>
+
+<div class="home-box">
+    <h1>Welcome to Echoes</h1>
+    <p class="subtitle">where your thoughts find a resting place before becoming memories.</p>
+    <a class="btn" href="/login">Login to Continue</a>
+    <a href="/signup" class="btn" 
+   style="background:#6A4E77; color:white; border-radius:10px; padding:10px 18px; text-decoration:none;">
+   🌱 Create New Account
+</a>
+
+</div>
+
+
+</body>
+</html>

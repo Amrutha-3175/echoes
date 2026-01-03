@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Edit Memory</title>
+<style>
+    body {
+        background: #EDE3D2;
+        font-family: Arial;
+        padding: 30px;
+        text-align: center;
+    }
+    .box {
+        background: white;
+        width: 450px;
+        margin: auto;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        text-align: left;
+    }
+    input, textarea, select {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 8px;
+        border: 1px solid #aaa;
+    }
+    button {
+        margin-top: 15px;
+        padding: 10px 20px;
+        background: #1F3E5A;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+</style>
+</head>
+<body>
+
+<h2>✏️ Edit Your Memory</h2>
+
+<div class="box">
+<form method="POST" enctype="multipart/form-data">
+
+    <label>Title:</label>
+    <input type="text" name="title" value="{{ memory.title }}" required>
+
+    <label>Content:</label>
+    <textarea name="content" rows="5" required>{{ memory.content }}</textarea>
+
+    <label>Date:</label>
+    <input type="date" name="date" value="{{ memory.memory_date }}" required>
+
+    <label>Emotion:</label>
+    <input type="text" name="emotion" value="{{ memory.emotion_id }}" placeholder="type or select">
+
+    <label>Change Image (Optional):</label>
+    <input type="file" name="image">
+
+    <label>Change Audio (Optional):</label>
+    <input type="file" name="audio">
+
+    <button type="submit">Save Changes</button>
+
+</form>
+</div>
+
+</body>
+</html>

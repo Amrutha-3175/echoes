@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<body style="text-align:center; font-family:Arial;">
+<h2>📩 Enter Reset Code</h2>
+
+<p>Reset code for <b>{{email}}</b>: <b>{{code}}</b> (temporary test mode)</p>
+
+<form method="POST" action="/reset-password/{{email}}">
+    <input type="text" name="code" placeholder="Enter Code" required><br><br>
+    <input type="password" name="password" placeholder="New Password" required><br><br>
+    <button type="submit">Update Password 🔐</button>
+</form>
+
+</body>
+</html>
