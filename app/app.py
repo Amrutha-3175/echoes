@@ -7,12 +7,14 @@ app = Flask(__name__)
 app.secret_key = "echoes-secret-key"
 
 # ---------------- DATABASE CONNECTION ----------------
+
+
 db = mysql.connector.connect(
-    host=os.environ.get("MYSQL_HOST"),
-    user=os.environ.get("MYSQL_USER"),
-    password=os.environ.get("MYSQL_PASSWORD"),
-    database=os.environ.get("MYSQL_DATABASE"),
-    port=os.environ.get("MYSQL_PORT")
+    host=os.environ.get("MYSQL_HOST", "localhost"),
+    user=os.environ.get("MYSQL_USER", "root"),
+    password=os.environ.get("MYSQL_PASSWORD", "Gcet@123"),
+    database=os.environ.get("MYSQL_DATABASE", "echoes"),
+    port=int(os.environ.get("MYSQL_PORT", 3306))
 )
 
 # ---------------- HOME PAGE ----------------
