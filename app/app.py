@@ -192,6 +192,47 @@ def dashboard():
         emotion_list=emotion_list,
         all_tags=all_tags
     )
+@app.route("/add", methods=["GET", "POST"])
+def add_memory():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM tags")
+    tags = cursor.fetchall()
+
+    if request.method == "POST":
+        title = request.form["title"]
+        content = request.form["content"]
+        date = request.form["date"]
+        emotion_input = request.form["emotion"]
+
+        if emotion_input.isdigit():
+            emotion_id = int(emotion_input)
+        else:
+            cursor.execute(
+                "INSERT INTO emotions (emotion_name) VALUES (%s)",
+                (emotion_input,)
+            )
+            db.commit()
+            emotion_id = cursor.lastrowid
+
+        cursor.execute("""
+            INSERT INTO memories (title, content, memory_date, user_id, emotion_id)
+            VALUES (%s,%s,%s,%s,%s)
+        """, (title, content, date, session["user_id"], emotion_id))
+
+        db.commit()
+        cursor.close()
+        db.close()
+
+        return redirect("/dashboard")
+
+    cursor.close()
+    db.close()
+    return render_template("add_memory.html", tags=tags)
 
 # ---------------- LOGOUT ----------------
 @app.route("/logout")
