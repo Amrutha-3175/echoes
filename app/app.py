@@ -17,6 +17,59 @@ db = mysql.connector.connect(
     port=int(os.environ.get("MYSQL_PORT", 3306))
 )
 
+
+def init_db():
+    cursor = db.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        user_id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100),
+        email VARCHAR(150) UNIQUE,
+        password VARCHAR(255)
+    )
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS emotions (
+        emotion_id INT AUTO_INCREMENT PRIMARY KEY,
+        emotion_name VARCHAR(50)
+    )
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS memories (
+        memory_id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(200),
+        content TEXT,
+        memory_date DATE,
+        user_id INT,
+        emotion_id INT,
+        image_path VARCHAR(255),
+        audio_path VARCHAR(255),
+        FOREIGN KEY (user_id) REFERENCES users(user_id),
+        FOREIGN KEY (emotion_id) REFERENCES emotions(emotion_id)
+    )
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS tags (
+        tag_id INT AUTO_INCREMENT PRIMARY KEY,
+        tag_name VARCHAR(50)
+    )
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS memory_tags (
+        memory_id INT,
+        tag_id INT,
+        FOREIGN KEY (memory_id) REFERENCES memories(memory_id),
+        FOREIGN KEY (tag_id) REFERENCES tags(tag_id)
+    )
+    """)
+
+    db.commit()
+
 # ---------------- HOME PAGE ----------------
 @app.route("/")
 def home():
@@ -327,6 +380,12 @@ def welcome():
     return render_template("welcome.html", name=session["name"])
 
 # ---------------- RUN SERVER ----------------
+try:
+    init_db()
+except Exception as e:
+    print("DB init error:", e)
+
+
 
 if __name__ == "__main__":
     app.run(debug=False, host="0.0.0.0")
