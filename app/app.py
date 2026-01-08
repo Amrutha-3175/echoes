@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, send_from_directory
+from flask import Flask, render_template, request, redirect, session
 from werkzeug.security import generate_password_hash, check_password_hash
 import mysql.connector
 import os
@@ -6,26 +6,44 @@ import os
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "echoes-secret-key")
 
-# --------------------------------------------------
-# DATABASE CONNECTION (SAFE FOR RAILWAY)
-# --------------------------------------------------
+# ==================================================
+# DATABASE CONNECTION HELPERS (RAILWAY SAFE)
+# ==================================================
 
-def get_db():
+def get_server_connection():
+    """Connects to MySQL server WITHOUT selecting a database"""
     return mysql.connector.connect(
         host=os.environ.get("MYSQL_HOST"),
         user=os.environ.get("MYSQL_USER"),
         password=os.environ.get("MYSQL_PASSWORD"),
-        database=os.environ.get("MYSQL_DATABASE"),
         port=int(os.environ.get("MYSQL_PORT", 3306)),
-        connection_timeout=10
+        autocommit=True
     )
 
-# --------------------------------------------------
-# DB INITIALIZATION
-# --------------------------------------------------
+def get_db_connection():
+    """Connects to the echoes database"""
+    return mysql.connector.connect(
+        host=os.environ.get("MYSQL_HOST"),
+        user=os.environ.get("MYSQL_USER"),
+        password=os.environ.get("MYSQL_PASSWORD"),
+        database="echoes",
+        port=int(os.environ.get("MYSQL_PORT", 3306))
+    )
+
+# ==================================================
+# DATABASE INITIALIZATION
+# ==================================================
 
 def init_db():
-    db = get_db()
+    # Step 1: Create database if missing
+    server = get_server_connection()
+    cursor = server.cursor()
+    cursor.execute("CREATE DATABASE IF NOT EXISTS echoes")
+    cursor.close()
+    server.close()
+
+    # Step 2: Create tables
+    db = get_db_connection()
     cursor = db.cursor()
 
     cursor.execute("""
@@ -53,9 +71,7 @@ def init_db():
         user_id INT,
         emotion_id INT,
         image_path VARCHAR(255),
-        audio_path VARCHAR(255),
-        FOREIGN KEY (user_id) REFERENCES users(user_id),
-        FOREIGN KEY (emotion_id) REFERENCES emotions(emotion_id)
+        audio_path VARCHAR(255)
     )
     """)
 
@@ -69,9 +85,7 @@ def init_db():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS memory_tags (
         memory_id INT,
-        tag_id INT,
-        FOREIGN KEY (memory_id) REFERENCES memories(memory_id),
-        FOREIGN KEY (tag_id) REFERENCES tags(tag_id)
+        tag_id INT
     )
     """)
 
@@ -79,9 +93,9 @@ def init_db():
     cursor.close()
     db.close()
 
-# --------------------------------------------------
+# ==================================================
 # ROUTES
-# --------------------------------------------------
+# ==================================================
 
 @app.route("/")
 def home():
@@ -91,11 +105,11 @@ def home():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        db = get_db()
-        cursor = db.cursor(dictionary=True)
-
         email = request.form["email"]
         password = request.form["password"]
+
+        db = get_db_connection()
+        cursor = db.cursor(dictionary=True)
 
         cursor.execute("SELECT * FROM users WHERE email=%s", (email,))
         user = cursor.fetchone()
@@ -108,7 +122,7 @@ def login():
             session["name"] = user["name"]
             return redirect("/dashboard")
 
-        return render_template("login.html", error="❌ Invalid credentials")
+        return render_template("login.html", error="Invalid email or password")
 
     return render_template("login.html")
 
@@ -116,12 +130,12 @@ def login():
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
-        db = get_db()
-        cursor = db.cursor(dictionary=True)
-
         name = request.form["name"]
         email = request.form["email"]
         password = generate_password_hash(request.form["password"])
+
+        db = get_db_connection()
+        cursor = db.cursor(dictionary=True)
 
         cursor.execute("SELECT * FROM users WHERE email=%s", (email,))
         if cursor.fetchone():
@@ -147,7 +161,7 @@ def dashboard():
     if "user_id" not in session:
         return redirect("/login")
 
-    db = get_db()
+    db = get_db_connection()
     cursor = db.cursor(dictionary=True)
 
     cursor.execute("""
@@ -185,16 +199,15 @@ def logout():
     session.clear()
     return redirect("/login")
 
-# --------------------------------------------------
+# ==================================================
 # STARTUP
-# --------------------------------------------------
+# ==================================================
 
-with app.app_context():
-    try:
-        init_db()
-        print("✅ Database initialized")
-    except Exception as e:
-        print("❌ DB init failed:", e)
+try:
+    init_db()
+    print("✅ Database ready")
+except Exception as e:
+    print("❌ DB init error:", e)
 
 if __name__ == "__main__":
     app.run(
