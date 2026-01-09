@@ -233,6 +233,89 @@ def add_memory():
     cursor.close()
     db.close()
     return render_template("add_memory.html", tags=tags)
+# ---------------- ADD MEMORY ----------------
+@app.route("/add", methods=["GET", "POST"])
+def add_memory():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    # Fetch existing tags
+    cursor.execute("SELECT * FROM tags")
+    tags = cursor.fetchall()
+
+    if request.method == "POST":
+        title = request.form["title"]
+        content = request.form["content"]
+        date = request.form["date"]
+        emotion_input = request.form["emotion"]
+
+        # Handle emotion
+        if emotion_input.isdigit():
+            emotion_id = int(emotion_input)
+        else:
+            cursor.execute(
+                "INSERT INTO emotions (emotion_name) VALUES (%s)",
+                (emotion_input,)
+            )
+            db.commit()
+            emotion_id = cursor.lastrowid
+
+        # Handle files
+        image = request.files.get("image")
+        audio = request.files.get("audio")
+
+        image_path = image.filename if image and image.filename else None
+        audio_path = audio.filename if audio and audio.filename else None
+
+        if image_path:
+            image.save(os.path.join(app.config["UPLOAD_FOLDER"], image_path))
+        if audio_path:
+            audio.save(os.path.join(app.config["UPLOAD_FOLDER"], audio_path))
+
+        # Insert memory
+        cursor.execute("""
+            INSERT INTO memories
+            (title, content, memory_date, user_id, emotion_id, image_path, audio_path)
+            VALUES (%s,%s,%s,%s,%s,%s,%s)
+        """, (
+            title, content, date,
+            session["user_id"], emotion_id,
+            image_path, audio_path
+        ))
+        db.commit()
+
+        memory_id = cursor.lastrowid
+
+        # Tags
+        selected_tags = request.form.getlist("selected_tags")
+        new_tags = request.form.get("new_tags")
+
+        if new_tags:
+            for t in [x.strip() for x in new_tags.split(",") if x.strip()]:
+                cursor.execute(
+                    "INSERT INTO tags (tag_name) VALUES (%s)",
+                    (t,)
+                )
+                db.commit()
+                selected_tags.append(str(cursor.lastrowid))
+
+        for tag_id in selected_tags:
+            cursor.execute(
+                "INSERT INTO memory_tags (memory_id, tag_id) VALUES (%s,%s)",
+                (memory_id, tag_id)
+            )
+        db.commit()
+
+        cursor.close()
+        db.close()
+        return redirect("/dashboard")
+
+    cursor.close()
+    db.close()
+    return render_template("add_memory.html", tags=tags)
 
 # ---------------- LOGOUT ----------------
 @app.route("/logout")
