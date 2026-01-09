@@ -246,6 +246,105 @@ def add_memory():
     db.close()
     return render_template("add_memory.html", tags=tags)
 
+@app.route("/delete/<int:memory_id>")
+def delete_memory(memory_id):
+    if "user_id" not in session:
+        return redirect("/login")
+
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    cursor.execute(
+        "DELETE FROM memories WHERE memory_id=%s AND user_id=%s",
+        (memory_id, session["user_id"])
+    )
+
+    db.commit()
+    cursor.close()
+    db.close()
+
+    return redirect("/dashboard")
+ @app.route("/edit/<int:memory_id>", methods=["GET", "POST"])
+def edit_memory(memory_id):
+    if "user_id" not in session:
+        return redirect("/login")
+
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute(
+        "SELECT * FROM memories WHERE memory_id=%s AND user_id=%s",
+        (memory_id, session["user_id"])
+    )
+    memory = cursor.fetchone()
+
+    if not memory:
+        cursor.close()
+        db.close()
+        return "Memory not found", 404
+
+    # Load tags
+    cursor.execute("SELECT * FROM tags")
+    tags = cursor.fetchall()
+
+    cursor.execute(
+        "SELECT tag_id FROM memory_tags WHERE memory_id=%s",
+        (memory_id,)
+    )
+    selected_tag_ids = [str(row["tag_id"]) for row in cursor.fetchall()]
+
+    if request.method == "POST":
+        title = request.form["title"]
+        content = request.form["content"]
+        date = request.form["date"]
+        emotion_input = request.form["emotion"]
+
+        if emotion_input.isdigit():
+            emotion_id = int(emotion_input)
+        else:
+            cursor.execute(
+                "INSERT INTO emotions (emotion_name) VALUES (%s)",
+                (emotion_input,)
+            )
+            db.commit()
+            emotion_id = cursor.lastrowid
+
+        cursor.execute("""
+            UPDATE memories
+            SET title=%s, content=%s, memory_date=%s, emotion_id=%s
+            WHERE memory_id=%s AND user_id=%s
+        """, (title, content, date, emotion_id, memory_id, session["user_id"]))
+        db.commit()
+
+        # Update tags
+        cursor.execute(
+            "DELETE FROM memory_tags WHERE memory_id=%s",
+            (memory_id,)
+        )
+
+        selected_tags = request.form.getlist("selected_tags")
+        for tag_id in selected_tags:
+            cursor.execute(
+                "INSERT INTO memory_tags (memory_id, tag_id) VALUES (%s,%s)",
+                (memory_id, tag_id)
+            )
+
+        db.commit()
+        cursor.close()
+        db.close()
+
+        return redirect("/dashboard")
+
+    cursor.close()
+    db.close()
+    return render_template(
+        "edit_memory.html",
+        memory=memory,
+        tags=tags,
+        selected_tag_ids=selected_tag_ids
+    )
+
+
 # ---------------- LOGOUT ----------------
 @app.route("/logout")
 def logout():
