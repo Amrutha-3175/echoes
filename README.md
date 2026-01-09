@@ -29,6 +29,15 @@ It is a structured archive of human experiences.
 - Backend: Python (Flask)
 - Database: MySQL
 - Frontend: HTML, CSS, JavaScript
+## Live Demo
+🔗 https://echoes-production-xxxx.up.railway.app
+
+## How to Use
+1. Sign up with your email
+2. Log in
+3. Add memories with emotions, tags, images, or voice
+4. Edit or delete memories anytime
+
 
 ## Project Status
 Completed!.
