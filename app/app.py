@@ -7,7 +7,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "echoes-secret-key")
 
 # ==================================================
-# DATABASE CONNECTION HELPERS (RAILWAY SAFE)
+# DATABASE CONNECTION HELPERS
 # ==================================================
 
 def get_server_connection():
@@ -43,46 +43,44 @@ def init_db():
     cursor = db.cursor()
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        user_id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(100),
-        email VARCHAR(150) UNIQUE,
-        password VARCHAR(255)
-    )
+        CREATE TABLE IF NOT EXISTS users (
+            user_id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(100),
+            email VARCHAR(150) UNIQUE,
+            password VARCHAR(255)
+        )
     """)
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS emotions (
-        emotion_id INT AUTO_INCREMENT PRIMARY KEY,
-        emotion_name VARCHAR(50)
-    )
+        CREATE TABLE IF NOT EXISTS emotions (
+            emotion_id INT AUTO_INCREMENT PRIMARY KEY,
+            emotion_name VARCHAR(50)
+        )
     """)
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS memories (
-        memory_id INT AUTO_INCREMENT PRIMARY KEY,
-        title VARCHAR(200),
-        content TEXT,
-        memory_date DATE,
-        user_id INT,
-        emotion_id INT,
-        image_path VARCHAR(255),
-        audio_path VARCHAR(255)
-    )
+        CREATE TABLE IF NOT EXISTS memories (
+            memory_id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(200),
+            content TEXT,
+            memory_date DATE,
+            user_id INT,
+            emotion_id INT
+        )
     """)
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS tags (
-        tag_id INT AUTO_INCREMENT PRIMARY KEY,
-        tag_name VARCHAR(50)
-    )
+        CREATE TABLE IF NOT EXISTS tags (
+            tag_id INT AUTO_INCREMENT PRIMARY KEY,
+            tag_name VARCHAR(50)
+        )
     """)
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS memory_tags (
-        memory_id INT,
-        tag_id INT
-    )
+        CREATE TABLE IF NOT EXISTS memory_tags (
+            memory_id INT,
+            tag_id INT
+        )
     """)
 
     db.commit()
@@ -161,35 +159,20 @@ def dashboard():
     cursor = db.cursor(dictionary=True)
 
     cursor.execute("""
-    SELECT memories.*, emotions.emotion_name,
-    GROUP_CONCAT(tags.tag_name SEPARATOR ', ') AS tag_list
-    FROM memories
-    LEFT JOIN emotions ON memories.emotion_id = emotions.emotion_id
-    LEFT JOIN memory_tags ON memories.memory_id = memory_tags.memory_id
-    LEFT JOIN tags ON memory_tags.tag_id = tags.tag_id
-    WHERE memories.user_id=%s
-    GROUP BY memories.memory_id
+        SELECT memories.*, emotions.emotion_name
+        FROM memories
+        LEFT JOIN emotions ON memories.emotion_id = emotions.emotion_id
+        WHERE memories.user_id=%s
     """, (session["user_id"],))
 
     memories = cursor.fetchall()
 
-    cursor.execute("SELECT emotion_name FROM emotions")
-    emotion_list = cursor.fetchall()
-
-    cursor.execute("SELECT tag_name FROM tags ORDER BY tag_name")
-    all_tags = cursor.fetchall()
-
     cursor.close()
     db.close()
 
-    return render_template(
-        "memories.html",
-        memories=memories,
-        emotion_list=emotion_list,
-        all_tags=all_tags
-    )
+    return render_template("memories.html", memories=memories)
 
-# ---------------- ADD MEMORY (ONLY ONE VERSION) ----------------
+# ---------------- ADD MEMORY ----------------
 @app.route("/add", methods=["GET", "POST"])
 def add_memory():
     if "user_id" not in session:
@@ -198,44 +181,23 @@ def add_memory():
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
 
-    cursor.execute("SELECT * FROM tags")
-    tags = cursor.fetchall()
-
     if request.method == "POST":
         title = request.form["title"]
         content = request.form["content"]
         date = request.form["date"]
-        emotion_input = request.form["emotion"]
+        emotion = request.form["emotion"]
 
-        if emotion_input.isdigit():
-            emotion_id = int(emotion_input)
-        else:
-            cursor.execute("INSERT INTO emotions (emotion_name) VALUES (%s)", (emotion_input,))
-            db.commit()
-            emotion_id = cursor.lastrowid
+        cursor.execute(
+            "INSERT INTO emotions (emotion_name) VALUES (%s)",
+            (emotion,)
+        )
+        db.commit()
+        emotion_id = cursor.lastrowid
 
         cursor.execute("""
-        INSERT INTO memories (title, content, memory_date, user_id, emotion_id)
-        VALUES (%s,%s,%s,%s,%s)
+            INSERT INTO memories (title, content, memory_date, user_id, emotion_id)
+            VALUES (%s,%s,%s,%s,%s)
         """, (title, content, date, session["user_id"], emotion_id))
-        db.commit()
-
-        memory_id = cursor.lastrowid
-
-        selected_tags = request.form.getlist("selected_tags")
-        new_tags = request.form.get("new_tags")
-
-        if new_tags:
-            for t in [x.strip() for x in new_tags.split(",") if x.strip()]:
-                cursor.execute("INSERT INTO tags (tag_name) VALUES (%s)", (t,))
-                db.commit()
-                selected_tags.append(str(cursor.lastrowid))
-
-        for tag_id in selected_tags:
-            cursor.execute(
-                "INSERT INTO memory_tags (memory_id, tag_id) VALUES (%s,%s)",
-                (memory_id, tag_id)
-            )
         db.commit()
 
         cursor.close()
@@ -244,27 +206,10 @@ def add_memory():
 
     cursor.close()
     db.close()
-    return render_template("add_memory.html", tags=tags)
+    return render_template("add_memory.html")
 
-@app.route("/delete/<int:memory_id>")
-def delete_memory(memory_id):
-    if "user_id" not in session:
-        return redirect("/login")
-
-    db = get_db_connection()
-    cursor = db.cursor()
-
-    cursor.execute(
-        "DELETE FROM memories WHERE memory_id=%s AND user_id=%s",
-        (memory_id, session["user_id"])
-    )
-
-    db.commit()
-    cursor.close()
-    db.close()
-
-    return redirect("/dashboard")
- @app.route("/edit/<int:memory_id>", methods=["GET", "POST"])
+# ---------------- EDIT MEMORY ----------------
+@app.route("/edit/<int:memory_id>", methods=["GET", "POST"])
 def edit_memory(memory_id):
     if "user_id" not in session:
         return redirect("/login")
@@ -283,67 +228,44 @@ def edit_memory(memory_id):
         db.close()
         return "Memory not found", 404
 
-    # Load tags
-    cursor.execute("SELECT * FROM tags")
-    tags = cursor.fetchall()
-
-    cursor.execute(
-        "SELECT tag_id FROM memory_tags WHERE memory_id=%s",
-        (memory_id,)
-    )
-    selected_tag_ids = [str(row["tag_id"]) for row in cursor.fetchall()]
-
     if request.method == "POST":
         title = request.form["title"]
         content = request.form["content"]
         date = request.form["date"]
-        emotion_input = request.form["emotion"]
-
-        if emotion_input.isdigit():
-            emotion_id = int(emotion_input)
-        else:
-            cursor.execute(
-                "INSERT INTO emotions (emotion_name) VALUES (%s)",
-                (emotion_input,)
-            )
-            db.commit()
-            emotion_id = cursor.lastrowid
 
         cursor.execute("""
             UPDATE memories
-            SET title=%s, content=%s, memory_date=%s, emotion_id=%s
-            WHERE memory_id=%s AND user_id=%s
-        """, (title, content, date, emotion_id, memory_id, session["user_id"]))
+            SET title=%s, content=%s, memory_date=%s
+            WHERE memory_id=%s
+        """, (title, content, date, memory_id))
         db.commit()
 
-        # Update tags
-        cursor.execute(
-            "DELETE FROM memory_tags WHERE memory_id=%s",
-            (memory_id,)
-        )
-
-        selected_tags = request.form.getlist("selected_tags")
-        for tag_id in selected_tags:
-            cursor.execute(
-                "INSERT INTO memory_tags (memory_id, tag_id) VALUES (%s,%s)",
-                (memory_id, tag_id)
-            )
-
-        db.commit()
         cursor.close()
         db.close()
-
         return redirect("/dashboard")
 
     cursor.close()
     db.close()
-    return render_template(
-        "edit_memory.html",
-        memory=memory,
-        tags=tags,
-        selected_tag_ids=selected_tag_ids
-    )
+    return render_template("edit_memory.html", memory=memory)
 
+# ---------------- DELETE MEMORY ----------------
+@app.route("/delete/<int:memory_id>")
+def delete_memory(memory_id):
+    if "user_id" not in session:
+        return redirect("/login")
+
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    cursor.execute(
+        "DELETE FROM memories WHERE memory_id=%s AND user_id=%s",
+        (memory_id, session["user_id"])
+    )
+    db.commit()
+
+    cursor.close()
+    db.close()
+    return redirect("/dashboard")
 
 # ---------------- LOGOUT ----------------
 @app.route("/logout")
