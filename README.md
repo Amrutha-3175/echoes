@@ -29,6 +29,14 @@ It is a structured archive of human experiences.
 - Backend: Python (Flask)
 - Database: MySQL
 - Frontend: HTML, CSS, JavaScript
+
+ ## 🚀 Deployment
+- Deployed using **Railway**
+- Backend: Flask
+- Database: MySQL
+- Environment variables used for secrets
+- Currently inactive due to free-tier limits
+
 ## Live Demo
 🔗 https://echoes-production-xxxx.up.railway.app
 
